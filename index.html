@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pesquisa</title>
+<meta property="og:title" content="Pesquisa">
+<meta name="description" content="Responde com sinceridade.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: a golden-hour beach painted on one canvas; the question floats in the sky, the answers sit on the sand where the waves wash in. Single committed look. */
+:root{
+  --dusk:#1b2142;
+  --ink:#fff4e6;
+  --ink-soft:#ffe4cc;
+  --gold:#ffcf7a;
+  --ember:#ff9f4f;
+  --sand-ink:#5a2e17;
+  --paper:#fff3e2;
+  --stamp:#e2553a;
+  --display:"Shrikhand", "Georgia", serif;
+  --body:"Nunito", system-ui, -apple-system, sans-serif;
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{
+  background:var(--dusk);color:var(--ink);font-family:var(--body);
+  overflow:hidden;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-text-size-adjust:100%;
+}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+.screen{
+  position:relative;z-index:1;height:100%;box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  text-align:center;
+  padding-block:clamp(26px, 6.5vh, 72px) clamp(26px, 6vh, 60px);
+}
+.top{display:flex;flex-direction:column;align-items:center;gap:clamp(12px, 2.2vh, 20px)}
+.bottom{display:flex;flex-direction:column;align-items:center;gap:12px}
+
+.tag{
+  display:inline-flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;
+  padding:7px 14px;border-radius:999px;
+  background:rgba(27,33,66,.42);
+  border:1px solid rgba(255,207,122,.32);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.tag b{color:var(--gold);font-weight:900}
+
+h1{
+  font-family:var(--display);font-weight:400;margin:0;
+  font-size:clamp(2rem, min(8.6vw, 6.2vh), 4.2rem);line-height:1.06;
+  max-width:14ch;text-wrap:balance;color:var(--ink);
+  text-shadow:0 2px 0 rgba(90,30,30,.28), 0 10px 40px rgba(20,12,40,.55);
+}
+h1 em{font-style:normal;color:var(--gold)}
+.sub{
+  margin:0;max-width:31ch;font-size:clamp(.95rem, 2.1vh, 1.08rem);font-weight:700;line-height:1.45;
+  color:var(--ink-soft);text-shadow:0 1px 14px rgba(20,12,40,.6);
+}
+
+.buttons{display:flex;gap:16px;align-items:center;justify-content:center;min-height:76px}
+button{
+  font-family:var(--body);font-weight:900;font-size:1.15rem;letter-spacing:.01em;
+  border:0;border-radius:999px;cursor:pointer;padding:15px 36px;
+  touch-action:manipulation;
+}
+#yes{
+  background:linear-gradient(180deg, #ffe0a0, var(--ember));
+  color:#4a210c;
+  box-shadow:0 12px 30px rgba(150,55,15,.45), inset 0 -3px 0 rgba(150,60,10,.22), inset 0 2px 0 rgba(255,255,255,.55);
+  transition:transform .28s cubic-bezier(.3,1.6,.5,1);
+}
+#yes:hover{filter:brightness(1.05)}
+#no{
+  background:rgba(255,244,230,.86);color:#6b3a1f;
+  box-shadow:0 8px 20px rgba(90,40,10,.28);
+  transition:left .22s ease, top .22s ease;
+  white-space:nowrap;z-index:5;
+}
+#no.loose{position:fixed;z-index:20}
+button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
+.counter{
+  margin:0;padding:4px 12px;border-radius:999px;
+  font-size:.82rem;font-weight:800;color:var(--sand-ink);
+  background:rgba(255,240,222,.62);
+  font-variant-numeric:tabular-nums;
+}
+.counter:empty{visibility:hidden}
+
+/* final screen */
+.big{margin:0;font-size:clamp(3.4rem, 9vh, 6rem);line-height:1;filter:drop-shadow(0 8px 20px rgba(60,20,20,.35))}
+.ticket-wrap{position:relative;max-width:100%;filter:drop-shadow(0 14px 26px rgba(80,30,10,.38))}
+.ticket{
+  position:relative;box-sizing:border-box;max-width:min(34ch, 100%);
+  display:grid;gap:6px;padding:20px 34px;border-radius:14px;
+  background:var(--paper);color:var(--sand-ink);
+  -webkit-mask:radial-gradient(circle 12px at 0 50%, #0000 97%, #000) left/51% 100% no-repeat, radial-gradient(circle 12px at 100% 50%, #0000 97%, #000) right/51% 100% no-repeat;
+  mask:radial-gradient(circle 12px at 0 50%, #0000 97%, #000) left/51% 100% no-repeat, radial-gradient(circle 12px at 100% 50%, #0000 97%, #000) right/51% 100% no-repeat;
+}
+.ticket::before{
+  content:"";position:absolute;inset:8px 20px;border:1.5px dashed rgba(226,120,60,.5);border-radius:8px;pointer-events:none;
+}
+.t-label{font-size:.66rem;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:#c8693a}
+.t-main{font-family:var(--display);font-weight:400;font-size:1.22rem;line-height:1.18}
+.t-foot{font-size:.8rem;font-weight:700;color:#8a5a3c}
+.stamp{
+  position:absolute;right:-4px;top:-16px;z-index:2;
+  padding:5px 9px;border-radius:6px;border:2.5px solid var(--stamp);
+  background:rgba(255,243,226,.92);color:var(--stamp);
+  font-size:.7rem;font-weight:900;letter-spacing:.2em;text-transform:uppercase;
+  transform:rotate(12deg);
+}
+
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes thunk{0%{opacity:0;transform:rotate(-8deg) scale(2.2)}60%{opacity:1;transform:rotate(14deg) scale(.92)}100%{opacity:1;transform:rotate(12deg) scale(1)}}
+.top > *, .bottom > *{animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+.top > :nth-child(2){animation-delay:.12s}
+.top > :nth-child(3){animation-delay:.24s}
+.bottom > *{animation-delay:.4s}
+#done .stamp{animation:thunk .55s .55s cubic-bezier(.3,1.4,.5,1) both}
+@media (prefers-reduced-motion: reduce){
+  .top > *, .bottom > *, #done .stamp{animation:none}
+  #yes,#no{transition:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<main id="ask" class="screen">
+  <div class="top">
+    <div class="tag"><span>Fiscalização do bronze</span><span>·</span><span>marquinha: <b>pendente de vistoria</b></span></div>
+    <h1>Karine, tu manda uma foto do <em>popô</em> pra eu avaliar o bronze?</h1>
+    <p class="sub">É pesquisa científica. Preciso conferir se a marquinha pegou certinho.</p>
+  </div>
+  <div class="bottom">
+    <div class="buttons">
+      <button id="yes" type="button">Sim</button>
+      <button id="no" type="button">Não</button>
+    </div>
+    <p class="counter" id="counter"></p>
+  </div>
+</main>
+
+<main id="done" class="screen" hidden>
+  <div class="top">
+    <p class="big" aria-hidden="true">🍑☀️</p>
+    <h1>Sabia que tu ia apoiar a <em>ciência</em> kkkkk</h1>
+    <p class="sub" id="doneSub">Fico no aguardo… sem pressão (mentira).</p>
+  </div>
+  <div class="bottom">
+    <div class="ticket-wrap">
+      <div class="ticket">
+        <span class="t-label">Vistoria do bronze · Nº 001</span>
+        <strong class="t-main">Válido pra 1 (uma) vistoria oficial da marquinha</strong>
+        <span class="t-foot">Sem pressão: só manda se tu quiser kkkkk</span>
+      </div>
+      <span class="stamp">Aprovado</span>
+    </div>
+  </div>
+</main>
+
+<script>
+(() => {
+  /* =========================================================
+     Beach scene: sky, setting sun, sea with sun glitter,
+     sand, and a wave that washes in and pulls back.
+     ========================================================= */
+  const cv = document.getElementById('scene');
+  const ctx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU = Math.PI * 2;
+  const hash = n => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); };
+  const easeOut = x => 1 - Math.pow(1 - x, 3);
+  const easeInOut = x => -(Math.cos(Math.PI * x) - 1) / 2;
+
+  let W, H, DPR, HZ, SHORE, sky, sand;
+  const sun = { x: 0, y: 0, r: 0 };
+  let clouds = [], birds = [], confetti = [], boost = 0;
+
+  function layer(w, h){
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(w * DPR); c.height = Math.ceil(h * DPR);
+    const g = c.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    return [c, g];
+  }
+
+  function starfish(g, x, y, r, rot, color){
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.beginPath();
+    for (let i = 0; i < 10; i++){
+      const a = -Math.PI / 2 + i * Math.PI / 5;
+      const rr = i % 2 ? r * .42 : r;
+      const px = Math.cos(a) * rr, py = Math.sin(a) * rr;
+      i ? g.lineTo(px, py) : g.moveTo(px, py);
+    }
+    g.closePath(); g.lineJoin = 'round';
+    g.fillStyle = color; g.strokeStyle = color; g.lineWidth = r * .3;
+    g.fill(); g.stroke();
+    g.fillStyle = 'rgba(255,230,200,.55)';
+    for (let i = 0; i < 5; i++){
+      const a = -Math.PI / 2 + i * TAU / 5;
+      g.beginPath(); g.arc(Math.cos(a) * r * .55, Math.sin(a) * r * .55, r * .07, 0, TAU); g.fill();
+    }
+    g.restore();
+  }
+
+  function shell(g, x, y, r, rot){
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.beginPath(); g.moveTo(0, r * .55);
+    g.arc(0, 0, r, Math.PI * 1.05, Math.PI * 1.95, false);
+    g.closePath();
+    g.fillStyle = '#f7d9c4'; g.fill();
+    g.strokeStyle = 'rgba(170,100,70,.45)'; g.lineWidth = 1;
+    for (let i = 0; i < 5; i++){
+      const a = Math.PI * (1.12 + i * .19);
+      g.beginPath(); g.moveTo(0, r * .5); g.lineTo(Math.cos(a) * r * .95, Math.sin(a) * r * .95); g.stroke();
+    }
+    g.restore();
+  }
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    const portrait = H > W;
+    HZ = Math.round(H * (portrait ? .57 : .58));
+    SHORE = Math.round(H * (portrait ? .715 : .75));
+    sun.r = Math.max(46, Math.min(W * .21, H * .13, 150));
+    sun.x = W * (portrait ? .5 : .66);
+    sun.y = HZ - sun.r * .36;
+
+    // sky
+    let g;
+    [sky, g] = layer(W, HZ + 1);
+    const sg = g.createLinearGradient(0, 0, 0, HZ);
+    sg.addColorStop(0, '#1b2142');
+    sg.addColorStop(.3, '#4e3260');
+    sg.addColorStop(.58, '#c95e5c');
+    sg.addColorStop(.82, '#ffa468');
+    sg.addColorStop(1, '#ffdca2');
+    g.fillStyle = sg; g.fillRect(0, 0, W, HZ + 1);
+    for (let i = 0; i < W * HZ / 3800; i++){
+      const y = Math.random() * HZ * .32;
+      g.fillStyle = `rgba(255,240,225,${Math.max(0, .7 - y / (HZ * .32)) * Math.random()})`;
+      g.fillRect(Math.random() * W, y, 1.1, 1.1);
+    }
+
+    // sand with grain, ripples and a few beach things
+    const sh = H - SHORE;
+    [sand, g] = layer(W, sh);
+    const dg = g.createLinearGradient(0, 0, 0, sh);
+    dg.addColorStop(0, '#eab686'); dg.addColorStop(.5, '#dd9f6c'); dg.addColorStop(1, '#c6804f');
+    g.fillStyle = dg; g.fillRect(0, 0, W, sh);
+    for (let i = 0; i < W * sh / 6; i++){
+      g.fillStyle = Math.random() < .5
+        ? `rgba(255,236,208,${.07 + Math.random() * .13})`
+        : `rgba(110,55,25,${.05 + Math.random() * .1})`;
+      g.fillRect(Math.random() * W, Math.random() * sh, 1.2, 1.2);
+    }
+    g.lineWidth = 1.4;
+    for (let k = 0; k < 6; k++){
+      const y0 = sh * (.58 + k * .075);
+      g.strokeStyle = `rgba(140,78,40,${.1 + k * .012})`;
+      g.beginPath();
+      for (let x = 0; x <= W; x += 10){
+        const y = y0 + Math.sin(x * .018 + k * 1.3) * 4 + Math.sin(x * .05 + k) * 1.2;
+        x ? g.lineTo(x, y) : g.moveTo(x, y);
+      }
+      g.stroke();
+    }
+    const sr = Math.max(9, Math.min(16, W * .035));
+    starfish(g, W * .1, sh * .86, sr, .3, '#ec7a4c');
+    shell(g, W * .9, sh * .9, sr * .8, -.25);
+    shell(g, W * .78, sh * .97, sr * .55, .4);
+
+    clouds = Array.from({ length: portrait ? 4 : 6 }, () => ({
+      x: Math.random() * W, y: HZ * (.14 + Math.random() * .62),
+      w: 90 + Math.random() * 190, h: 5 + Math.random() * 9,
+      v: 3 + Math.random() * 7, a: .16 + Math.random() * .2
+    }));
+    birds = Array.from({ length: 3 }, () => ({
+      x: Math.random() * W, y: HZ * (.3 + Math.random() * .32),
+      s: 5 + Math.random() * 4, v: 12 + Math.random() * 10, p: Math.random() * TAU
+    }));
+  }
+
+  // wave edge helpers
+  const wav = (x, tm, k) =>
+    Math.sin(x * .011 + tm * .7 + k) * .55 +
+    Math.sin(x * .027 - tm * 1.1 + k * 2) * .3 +
+    Math.sin(x * .004 + k * 5) * .9;
+
+  const t0 = performance.now();
+  let last = t0;
+
+  function frame(now){
+    const t = (now - t0) / 1000;
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const D = SHORE - HZ;
+
+    /* ---- sky ---- */
+    ctx.drawImage(sky, 0, 0, W, HZ + 1);
+    const rise = reduce ? 1 : easeOut(Math.min(1, t / 2.8));
+    const sy = sun.y + (1 - rise) * sun.r * 1.2 + (reduce ? 0 : Math.sin(t * .3) * sun.r * .025);
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, HZ); ctx.clip();
+
+    const glowA = .5 + .06 * Math.sin(t * .9) + boost * .35;
+    let gr = ctx.createRadialGradient(sun.x, sy, sun.r * .6, sun.x, sy, sun.r * 5.2);
+    gr.addColorStop(0, `rgba(255,214,140,${glowA})`);
+    gr.addColorStop(.35, `rgba(255,150,95,${glowA * .32})`);
+    gr.addColorStop(1, 'rgba(255,140,90,0)');
+    ctx.fillStyle = gr; ctx.fillRect(0, 0, W, HZ);
+
+    gr = ctx.createRadialGradient(sun.x, sy - sun.r * .3, sun.r * .08, sun.x, sy, sun.r);
+    gr.addColorStop(0, '#fffbea'); gr.addColorStop(.5, '#ffe39a'); gr.addColorStop(1, '#ffa54e');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(sun.x, sy, sun.r, 0, TAU); ctx.fill();
+
+    for (const c of clouds){
+      if (!reduce){ c.x += c.v * dt; if (c.x - c.w > W) c.x = -c.w; }
+      ctx.fillStyle = `rgba(255,190,165,${c.a})`;
+      ctx.beginPath(); ctx.ellipse(c.x, c.y, c.w / 2, c.h / 2, 0, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(c.x + c.w * .16, c.y - c.h * .42, c.w * .28, c.h * .38, 0, 0, TAU); ctx.fill();
+    }
+
+    ctx.strokeStyle = 'rgba(45,22,40,.6)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+    for (const b of birds){
+      if (!reduce){ b.x += b.v * dt; if (b.x > W + 20){ b.x = -20; b.y = HZ * (.3 + Math.random() * .32); } }
+      const f = Math.sin(t * 6 + b.p) * .6 + .2;
+      const y = b.y + Math.sin(t * .8 + b.p) * 4;
+      ctx.beginPath();
+      ctx.moveTo(b.x - b.s, y - b.s * f);
+      ctx.quadraticCurveTo(b.x - b.s * .4, y - b.s * f * .2, b.x, y);
+      ctx.quadraticCurveTo(b.x + b.s * .4, y - b.s * f * .2, b.x + b.s, y - b.s * f);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    /* ---- sea ---- */
+    const sea = ctx.createLinearGradient(0, HZ, 0, SHORE);
+    sea.addColorStop(0, '#f2a676');
+    sea.addColorStop(.16, '#cf7b6a');
+    sea.addColorStop(.55, '#4d7186');
+    sea.addColorStop(1, '#2c6175');
+    ctx.fillStyle = sea; ctx.fillRect(0, HZ, W, D + 3);
+    ctx.fillStyle = 'rgba(255,232,185,.6)'; ctx.fillRect(0, HZ - .5, W, 1.5);
+
+    const N = 16;
+    for (let k = 1; k < N; k++){
+      const u = k / N, y0 = HZ + D * u * u;
+      const A = .5 + 3.6 * u * u, L = 28 + 150 * u;
+      const sp = (reduce ? 0 : t) * (.5 + u * .9) * (k % 2 ? 1 : -1);
+      ctx.beginPath();
+      for (let x = 0; x <= W + 6; x += 6){
+        const y = y0 + Math.sin(x / L * TAU + sp + k * 1.7) * A;
+        x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.strokeStyle = `rgba(255,222,192,${.05 + .15 * (1 - u)})`;
+      ctx.lineWidth = .6 + 1.5 * u; ctx.stroke();
+      ctx.beginPath();
+      for (let x = 0; x <= W + 6; x += 6){
+        const y = y0 + A * 1.3 + Math.sin(x / L * TAU + sp + k * 1.7 + .9) * A;
+        x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.strokeStyle = `rgba(20,38,60,${.13 * u})`; ctx.lineWidth = 1 + 1.5 * u; ctx.stroke();
+    }
+
+    // sun glitter on the water
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (let y = HZ + 1; y < SHORE - 2;){
+      const u = (y - HZ) / D, step = 2 + u * 7, half = sun.r * (.5 + 1.35 * u);
+      const seed = Math.floor(y);
+      for (let j = 0; j < 3; j++){
+        const s = hash(seed * 3 + j);
+        const off = (s - .5) * 1.7 * half + (reduce ? 0 : Math.sin(t * (1.2 + s) + seed) * half * .15);
+        const len = half * (.12 + .45 * hash(seed * 7 + j));
+        const a = (.22 + .35 * (1 - u)) * (.5 + .5 * Math.sin((reduce ? 0 : t) * (2 + 3 * s) + seed * 1.3)) * rise;
+        ctx.fillStyle = `rgba(255,198,128,${a})`;
+        ctx.fillRect(sun.x + off - len / 2, y, len, Math.max(1, step * .45));
+      }
+      y += step;
+    }
+    ctx.restore();
+
+    /* ---- sand ---- */
+    ctx.drawImage(sand, 0, SHORE, W, H - SHORE);
+
+    /* ---- wave washing in and out ---- */
+    const P = 7.5, peak = .38;
+    const tt = reduce ? P * .3 : t + 1.4;
+    const n = Math.floor(tt / P), p = (tt - n * P) / P;
+    const amp = .7 + .3 * hash(n + 1);
+    const reach = p < peak ? easeOut(p / peak) : 1 - easeInOut((p - peak) / (1 - peak));
+    const depth = (H - SHORE) * .44 * amp;
+
+    if (p > peak){
+      const q = (p - peak) / (1 - peak), tPeak = n * P + peak * P;
+      ctx.beginPath(); ctx.moveTo(0, SHORE);
+      for (let x = 0; x <= W + 8; x += 8) ctx.lineTo(x, SHORE + depth + wav(x, tPeak, n) * 13);
+      ctx.lineTo(W + 8, SHORE); ctx.closePath();
+      ctx.fillStyle = `rgba(122,60,28,${.3 * Math.pow(1 - q, .8)})`; ctx.fill();
+    }
+
+    const pts = [];
+    let maxY = SHORE;
+    for (let x = 0; x <= W + 8; x += 8){
+      const y = SHORE + reach * depth + wav(x, tt, n) * (3 + 10 * reach);
+      pts.push([x, y]); if (y > maxY) maxY = y;
+    }
+    ctx.beginPath(); ctx.moveTo(0, SHORE - 3); ctx.lineTo(W + 8, SHORE - 3);
+    for (let i = pts.length - 1; i >= 0; i--) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.closePath();
+    const wg = ctx.createLinearGradient(0, SHORE, 0, Math.max(maxY, SHORE + 12));
+    wg.addColorStop(0, 'rgba(52,122,136,.95)');
+    wg.addColorStop(.55, 'rgba(104,186,186,.62)');
+    wg.addColorStop(1, 'rgba(196,236,226,.38)');
+    ctx.fillStyle = wg; ctx.fill();
+
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(255,255,255,.13)'; ctx.lineWidth = 1.2;
+    for (let s = 1; s <= 2; s++){
+      const f = s / 3;
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => {
+        const yy = SHORE + (y - SHORE) * f + Math.sin(x * .03 + t * 1.5 + s) * 1.5;
+        i ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy);
+      });
+      ctx.stroke();
+    }
+
+    const foamA = p < peak ? .95 : .95 - .55 * ((p - peak) / (1 - peak));
+    ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.strokeStyle = `rgba(255,250,242,${foamA})`; ctx.lineWidth = 2.5 + 2.5 * reach; ctx.stroke();
+    ctx.beginPath();
+    pts.forEach(([x, y], i) => {
+      const yy = y - 6 - 3 * Math.sin(x * .05 + t * 2);
+      i ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy);
+    });
+    ctx.strokeStyle = `rgba(255,255,255,${foamA * .35})`; ctx.lineWidth = 1.2; ctx.stroke();
+    for (let i = 0; i < pts.length; i += 2){
+      const s = hash(i * 1.3 + n);
+      if (s < .45) continue;
+      const [x, y] = pts[i];
+      ctx.fillStyle = `rgba(255,255,255,${foamA * .65})`;
+      ctx.beginPath(); ctx.arc(x + (s - .5) * 8, y - 2 - s * 8, .8 + s * 1.7, 0, TAU); ctx.fill();
+    }
+
+    // breaker line where the sea meets the beach
+    const build = p > .82 ? (p - .82) / .18 : p < .14 ? 1 - p / .14 : 0;
+    ctx.beginPath();
+    for (let x = 0; x <= W + 8; x += 8){
+      const y = SHORE - 3 + Math.sin(x * .02 + t * 1.2) * 1.6;
+      x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.strokeStyle = `rgba(255,252,245,${.3 + .55 * build})`;
+    ctx.lineWidth = 2 + 3 * build; ctx.stroke();
+
+    /* ---- confetti on "sim" ---- */
+    if (confetti.length){
+      for (let i = confetti.length - 1; i >= 0; i--){
+        const c = confetti[i];
+        c.vy += 620 * dt; c.vx *= .99; c.x += c.vx * dt; c.y += c.vy * dt; c.r += c.vr * dt;
+        if (c.y > H + 30){ confetti.splice(i, 1); continue; }
+        ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.r);
+        ctx.fillStyle = c.c; ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+        ctx.restore();
+      }
+    }
+    boost = Math.max(0, boost - dt * .5);
+
+    if (!reduce || confetti.length) requestAnimationFrame(frame);
+  }
+
+  resize();
+  requestAnimationFrame(frame);
+  addEventListener('resize', () => { resize(); if (reduce) requestAnimationFrame(frame); });
+
+  function burst(x, y){
+    boost = 1;
+    if (reduce) return;
+    const cols = ['#ffd98f', '#ff9f4f', '#fff4e6', '#5fb8b0', '#ec7a4c', '#ffcf7a'];
+    for (let i = 0; i < 110; i++){
+      const a = Math.random() * TAU, v = 160 + Math.random() * 460;
+      confetti.push({
+        x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 280,
+        r: Math.random() * TAU, vr: (Math.random() - .5) * 14,
+        w: 5 + Math.random() * 6, h: 3 + Math.random() * 4, c: cols[i % cols.length]
+      });
+    }
+  }
+
+  /* =========================================================
+     The question: "Não" runs away, "Sim" grows.
+     ========================================================= */
+  const yes = document.getElementById('yes');
+  const no = document.getElementById('no');
+  const counter = document.getElementById('counter');
+  const lines = ['Não', 'Tem certeza?', 'É pela ciência', 'Kkkkk volta aqui', 'A marquinha merece',
+    'Só uma vistoria', 'Tô vendo tu rindo', 'Nem tenta', 'Pensa no bronze', 'O sim tá ali ó',
+    'Última chance', 'Esse botão é tímido'];
+  let tries = 0, scale = 1, lastEscape = 0;
+
+  function escape(){
+    const now = Date.now();
+    if (now - lastEscape < 250) return;
+    lastEscape = now;
+    tries++;
+    no.textContent = lines[Math.min(tries, lines.length - 1)];
+    if (!no.classList.contains('loose')){
+      const r = no.getBoundingClientRect();
+      no.style.left = r.left + 'px'; no.style.top = r.top + 'px';
+      no.classList.add('loose');
+      document.body.appendChild(no);
+      void no.offsetWidth;
+    }
+    const pad = 20, bw = no.offsetWidth, bh = no.offsetHeight;
+    const yr = yes.getBoundingClientRect();
+    const hr = document.querySelector('#ask h1').getBoundingClientRect();
+    const hits = (x, y, r, m) => x < r.right + m && x + bw > r.left - m && y < r.bottom + m && y + bh > r.top - m;
+    let x, y, guard = 0;
+    do {
+      x = pad + Math.random() * Math.max(1, innerWidth - bw - pad * 2);
+      y = pad + 40 + Math.random() * Math.max(1, innerHeight - bh - pad * 2 - 40);
+      guard++;
+    } while (guard < 40 && (hits(x, y, yr, 20) || (guard < 25 && hits(x, y, hr, 6))));
+    no.style.left = x + 'px'; no.style.top = y + 'px';
+
+    scale = Math.min(scale + .12, 2.1);
+    yes.style.transform = `scale(${scale})`;
+    counter.textContent = tries >= 3 ? `Tentativas de dizer não: ${tries}` : '';
+  }
+
+  addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse') return;
+    const r = no.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    if (Math.hypot(e.clientX - cx, e.clientY - cy) < Math.max(r.width, r.height) * .9) escape();
+  });
+  no.addEventListener('touchstart', e => { e.preventDefault(); escape(); }, { passive: false });
+  no.addEventListener('pointerdown', e => { e.preventDefault(); escape(); });
+  no.addEventListener('click', e => { e.preventDefault(); escape(); });
+  no.addEventListener('focus', () => { if (tries) yes.focus(); });
+
+  yes.addEventListener('click', () => {
+    const r = yes.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2);
+    if (reduce) requestAnimationFrame(frame);
+    document.getElementById('ask').hidden = true;
+    no.hidden = true;
+    if (tries > 0){
+      document.getElementById('doneSub').textContent =
+        `Fugiu ${tries} ${tries === 1 ? 'vez' : 'vezes'} e mesmo assim disse sim. Fico no aguardo… sem pressão (mentira).`;
+    }
+    document.getElementById('done').hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
